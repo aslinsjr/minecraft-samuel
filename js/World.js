@@ -29,12 +29,14 @@ export class World {
         const block = new THREE.Mesh(this.blockGeo, this.mats[type]);
         block.position.set(x, y, z);
         block.userData.type = type;
+        block.name = type; // Para identificar na mineração
         
         this.scene.add(block);
         this.blocks.push(block);
         
         if (isUserBuilt) {
             this.userBlocks.push(block);
+            this.resources.push(block); // Adiciona aos resources para poder minerar
         }
         return block;
     }

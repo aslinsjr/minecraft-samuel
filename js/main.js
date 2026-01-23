@@ -258,7 +258,11 @@ function update() {
             const target = hits[0].object;
             const resourceId = `${target.position.x}_${target.position.y}_${target.position.z}`;
             
+            // Verificar se é um bloco construído pelo jogador
+            const isUserBlock = world.userBlocks.includes(target);
+            
             if (target.userData.tree) {
+                // Minerar árvore inteira
                 target.userData.tree.forEach(p => {
                     const partId = `${p.position.x}_${p.position.y}_${p.position.z}`;
                     world.destroyedResources.add(partId);
@@ -267,11 +271,19 @@ function update() {
                     if (p.name === "wood") player.collect("wood");
                 });
             } else {
+                // Minerar bloco individual
+                if (isUserBlock) {
+                    // Remove dos userBlocks
+                    world.userBlocks = world.userBlocks.filter(b => b !== target);
+                }
+                
                 world.destroyedResources.add(resourceId);
                 player.collect(target.name);
                 scene.remove(target);
                 world.resources = world.resources.filter(r => r !== target);
+                world.blocks = world.blocks.filter(b => b !== target);
             }
+            
             isMining = false;
             saveGame();
         }
