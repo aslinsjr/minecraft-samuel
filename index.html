@@ -3,17 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
+     <link rel="icon" type="image/png" href="./favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zé Mineiro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-   <div id="ui">WASD: Mover | B: Construir | 1-2: Selecionar Material</div>
-<div id="inventory">
-    <div class="slot" id="slot-1">🌳 <span id="count-wood">0</span></div>
-    <div class="slot" id="slot-2">🧱 <span id="count-stone">0</span></div>
-</div>
+    <div id="ui">WASD: Mover | B: Construir | 1-2: Selecionar Material</div>
+    <div id="save-indicator">Jogo Salvo</div>
+    <div id="inventory">
+        <div class="slot selected" id="slot-1">🌳 <span id="count-wood">0</span></div>
+        <div class="slot" id="slot-2">🧱 <span id="count-stone">0</span></div>
+    </div>
     <script type="importmap">
         {
             "imports": {

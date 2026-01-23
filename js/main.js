@@ -17,7 +17,6 @@ scene.add(sun, new THREE.AmbientLight(0xffffff, 0.6));
 
 // --- MUNDO E JOGADOR ---
 const world = new World(scene);
-world.generate();
 const player = new Player(scene);
 
 // --- ESTADOS E VARIÁVEIS ---
@@ -42,26 +41,133 @@ const ghostBlock = new THREE.Mesh(ghostGeo, ghostMat);
 scene.add(ghostBlock);
 ghostBlock.visible = false;
 
+// --- SISTEMA DE PERSISTÊNCIA ---
+const SAVE_VERSION = 1;
+const SAVE_KEY = 'ze_mineiro_save';
+
+function saveGame() {
+    const saveData = {
+        version: SAVE_VERSION,
+        inventory: player.inventory,
+        selectedItem: player.selectedItem,
+        playerPosition: {
+            x: player.group.position.x,
+            y: player.group.position.y,
+            z: player.group.position.z
+        },
+        playerRotation: player.group.rotation.y,
+        worldGenerated: true,
+        terrain: world.terrainData,
+        trees: world.treesData,
+        stones: world.stonesData,
+        builtBlocks: world.userBlocks.map(b => ({
+            x: b.position.x,
+            y: b.position.y,
+            z: b.position.z,
+            type: b.userData.type
+        })),
+        destroyedResources: Array.from(world.destroyedResources) 
+    };
+    
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+        showSaveIndicator();
+    } catch (e) {
+        console.error("Erro ao salvar:", e);
+    }
+}
+
+function loadGame() {
+    const rawData = localStorage.getItem(SAVE_KEY);
+    if (!rawData) {
+        // Primeira vez - gera mundo novo
+        world.generate();
+        player.group.position.set(0, 10, 0);
+        saveGame();
+        return;
+    }
+
+    try {
+        const data = JSON.parse(rawData);
+        
+        // Verificar versão
+        if (data.version !== SAVE_VERSION) {
+            console.warn("Save antigo detectado, gerando novo mundo");
+            world.generate();
+            player.group.position.set(0, 10, 0);
+            saveGame();
+            return;
+        }
+
+        // Restaurar inventário
+        player.inventory = data.inventory;
+        if (document.getElementById('count-wood')) document.getElementById('count-wood').innerText = player.inventory.wood;
+        if (document.getElementById('count-stone')) document.getElementById('count-stone').innerText = player.inventory.stone;
+
+        // Restaurar item selecionado
+        player.selectedItem = data.selectedItem || 'wood';
+        const slotNum = data.selectedItem === 'stone' ? 2 : 1;
+        player.selectSlot(slotNum);
+
+        // Restaurar posição e rotação
+        player.group.position.set(data.playerPosition.x, data.playerPosition.y, data.playerPosition.z);
+        player.group.rotation.y = data.playerRotation || 0;
+
+        // Carregar mundo salvo
+        world.loadWorld(data.terrain, data.trees, data.stones, data.destroyedResources);
+
+        // Restaurar blocos construídos
+        data.builtBlocks.forEach(b => {
+            world.spawnBlock(b.x, b.y, b.z, b.type, true);
+        });
+        
+        console.log("Progresso carregado com sucesso.");
+    } catch (e) {
+        console.error("Erro ao carregar save:", e);
+        world.generate();
+        player.group.position.set(0, 10, 0);
+        saveGame();
+    }
+}
+
+function showSaveIndicator() {
+    const indicator = document.getElementById('save-indicator');
+    if (indicator) {
+        indicator.style.opacity = '1';
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+        }, 1000);
+    }
+}
+
+// Auto-save periódico (a cada 30 segundos)
+setInterval(() => {
+    saveGame();
+}, 30000);
+
+// Salvar ao fechar a janela
+window.addEventListener('beforeunload', () => {
+    saveGame();
+});
+
+// Carregar jogo
+loadGame();
+
 // --- EVENTOS DE INPUT ---
 window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    
-    // Seleção de Slots
     if (e.code === 'Digit1') player.selectSlot(1);
     if (e.code === 'Digit2') player.selectSlot(2);
-    
-    // Alternar Modo de Construção
     if (e.code === 'KeyB') {
         buildMode = !buildMode;
         ghostBlock.visible = buildMode;
-        console.log("Modo Construção:", buildMode ? "ON" : "OFF");
     }
 });
 
 window.addEventListener('keyup', (e) => keys[e.code] = false);
 
 window.addEventListener('mousedown', (e) => {
-    if (e.button === 0) { // Clique Esquerdo
+    if (e.button === 0) {
         if (buildMode) {
             placeBlock();
         } else {
@@ -74,21 +180,15 @@ window.addEventListener('mouseup', () => isMining = false);
 // --- FUNÇÕES DE LÓGICA ---
 
 function placeBlock() {
-    const type = player.selectedItem; // wood ou stone
+    const type = player.selectedItem;
     if (player.inventory[type] > 0) {
-        const newBlock = new THREE.Mesh(world.blockGeo, world.mats[type]);
-        newBlock.position.copy(ghostBlock.position);
-        scene.add(newBlock);
+        world.spawnBlock(ghostBlock.position.x, ghostBlock.position.y, ghostBlock.position.z, type, true);
         
-        // Adiciona à lista de blocos para ter colisão e base para novas construções
-        world.blocks.push(newBlock);
-        
-        // Consome inventário
         player.inventory[type]--;
         const el = document.getElementById(`count-${type}`);
         if (el) el.innerText = player.inventory[type];
-    } else {
-        console.log("Sem materiais suficientes!");
+        
+        saveGame();
     }
 }
 
@@ -116,7 +216,6 @@ function update() {
     const oldPos = player.group.position.clone();
     const isMoving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'];
 
-    // Rotação e Movimento
     if (keys['KeyA']) player.group.rotation.y += 0.05;
     if (keys['KeyD']) player.group.rotation.y -= 0.05;
 
@@ -124,7 +223,6 @@ function update() {
         let dz = keys['KeyW'] ? -0.1 : (keys['KeyS'] ? 0.1 : 0);
         player.group.translateZ(dz);
 
-        // Colisão Lateral (Incluindo blocos construídos e recursos)
         const dir = new THREE.Vector3(0, 0, dz > 0 ? 1 : -1).applyQuaternion(player.group.quaternion);
         ray.set(player.group.position.clone().add(new THREE.Vector3(0, 0.5, 0)), dir);
         const hits = ray.intersectObjects([...world.blocks, ...world.resources]);
@@ -134,7 +232,6 @@ function update() {
         }
     }
 
-    // Gravidade e Pulo
     ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), new THREE.Vector3(0, -1, 0));
     const ground = ray.intersectObjects(world.blocks);
     if (ground.length > 0 && ground[0].distance <= 1.05) {
@@ -152,7 +249,6 @@ function update() {
         vVel = 0;
     }
 
-    // Lógica de Mineração
     if (isMining && !buildMode) {
         const look = new THREE.Vector3(0, 0, -1).applyQuaternion(player.group.quaternion);
         ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), look);
@@ -160,30 +256,34 @@ function update() {
         const hits = ray.intersectObjects(world.resources);
         if (hits.length > 0) {
             const target = hits[0].object;
+            const resourceId = `${target.position.x}_${target.position.y}_${target.position.z}`;
+            
             if (target.userData.tree) {
                 target.userData.tree.forEach(p => {
+                    const partId = `${p.position.x}_${p.position.y}_${p.position.z}`;
+                    world.destroyedResources.add(partId);
                     scene.remove(p);
                     world.resources = world.resources.filter(r => r !== p);
                     if (p.name === "wood") player.collect("wood");
                 });
             } else {
+                world.destroyedResources.add(resourceId);
                 player.collect(target.name);
                 scene.remove(target);
                 world.resources = world.resources.filter(r => r !== target);
             }
             isMining = false;
+            saveGame();
         }
     }
 
-    // Lógica de Preview de Construção
     if (buildMode) {
         const look = new THREE.Vector3(0, -0.5, -1).applyQuaternion(player.group.quaternion).normalize();
-       ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), look);
+        ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), look);
         ray.far = 4;
         const hits = ray.intersectObjects(world.blocks);
         if (hits.length > 0) {
             const hit = hits[0];
-            // Posiciona o ghost block na face do bloco atingido
             const pos = hit.object.position.clone().add(hit.face.normal);
             ghostBlock.position.copy(pos);
             ghostBlock.visible = true;
@@ -194,7 +294,6 @@ function update() {
 
     player.animate(isMoving, isMining);
     
-    // Câmera
     const camPos = new THREE.Vector3(0, 4, 8).applyQuaternion(player.group.quaternion).add(player.group.position);
     camera.position.lerp(camPos, 0.1);
     camera.lookAt(player.group.position.x, player.group.position.y + 1, player.group.position.z);
