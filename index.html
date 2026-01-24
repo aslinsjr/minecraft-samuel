@@ -3,14 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-     <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zé Mineiro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="ui">WASD: Mover | B: Construir | 1-2: Selecionar Material</div>
+    <div id="ui">
+        <div>WASD: Mover | B: Construir | 1-2: Selecionar Material</div>
+        <div id="username-display"></div>
+    </div>
+    <button id="logout-btn">Sair</button>
     <div id="save-indicator">Jogo Salvo</div>
     <div id="inventory">
         <div class="slot selected" id="slot-1">🌳 <span id="count-wood">0</span></div>
@@ -25,6 +29,19 @@
         }
     </script>
     <script type="module" src="js/main.js"></script>
+    <script>
+        // Mostrar username
+        const username = sessionStorage.getItem('username');
+        if (username) {
+            document.getElementById('username-display').textContent = `Jogador: ${username}`;
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'auth.html';
+        });
+    </script>
 </body>
 
 </html>

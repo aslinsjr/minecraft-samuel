@@ -2,6 +2,25 @@ import * as THREE from 'three';
 import { Player } from './Player.js';
 import { World } from './World.js';
 
+const API_URL = 'http://localhost:3000/api';
+
+// Verificar autenticação
+const token = sessionStorage.getItem('token');
+if (!token) {
+    window.location.href = 'auth.html';
+}
+
+// Obter cores do jogador
+let playerColors = null;
+try {
+    const colorsStr = sessionStorage.getItem('playerColors');
+    if (colorsStr) {
+        playerColors = JSON.parse(colorsStr);
+    }
+} catch (e) {
+    console.error('Erro ao carregar cores do jogador:', e);
+}
+
 // --- CONFIGURAÇÃO INICIAL ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
@@ -17,7 +36,7 @@ scene.add(sun, new THREE.AmbientLight(0xffffff, 0.6));
 
 // --- MUNDO E JOGADOR ---
 const world = new World(scene);
-const player = new Player(scene);
+const player = new Player(scene, playerColors);
 
 // --- ESTADOS E VARIÁVEIS ---
 const keys = {};
@@ -41,11 +60,10 @@ const ghostBlock = new THREE.Mesh(ghostGeo, ghostMat);
 scene.add(ghostBlock);
 ghostBlock.visible = false;
 
-// --- SISTEMA DE PERSISTÊNCIA ---
+// --- SISTEMA DE PERSISTÊNCIA COM API ---
 const SAVE_VERSION = 1;
-const SAVE_KEY = 'ze_mineiro_save';
 
-function saveGame() {
+async function saveGame() {
     const saveData = {
         version: SAVE_VERSION,
         inventory: player.inventory,
@@ -70,32 +88,53 @@ function saveGame() {
     };
     
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        showSaveIndicator();
+        const response = await fetch(`${API_URL}/game/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(saveData)
+        });
+
+        if (response.ok) {
+            showSaveIndicator();
+        } else {
+            console.error('Erro ao salvar no servidor');
+        }
     } catch (e) {
         console.error("Erro ao salvar:", e);
     }
 }
 
-function loadGame() {
-    const rawData = localStorage.getItem(SAVE_KEY);
-    if (!rawData) {
-        // Primeira vez - gera mundo novo
-        world.generate();
-        player.group.position.set(0, 10, 0);
-        saveGame();
-        return;
-    }
-
+async function loadGame() {
     try {
-        const data = JSON.parse(rawData);
+        const response = await fetch(`${API_URL}/game/load`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar');
+        }
+
+        const data = await response.json();
         
+        if (data.firstTime) {
+            // Primeira vez - gera mundo novo
+            world.generate();
+            player.group.position.set(0, 10, 0);
+            await saveGame();
+            return;
+        }
+
         // Verificar versão
         if (data.version !== SAVE_VERSION) {
             console.warn("Save antigo detectado, gerando novo mundo");
             world.generate();
             player.group.position.set(0, 10, 0);
-            saveGame();
+            await saveGame();
             return;
         }
 
@@ -126,7 +165,7 @@ function loadGame() {
         console.error("Erro ao carregar save:", e);
         world.generate();
         player.group.position.set(0, 10, 0);
-        saveGame();
+        await saveGame();
     }
 }
 
@@ -258,11 +297,9 @@ function update() {
             const target = hits[0].object;
             const resourceId = `${target.position.x}_${target.position.y}_${target.position.z}`;
             
-            // Verificar se é um bloco construído pelo jogador
             const isUserBlock = world.userBlocks.includes(target);
             
             if (target.userData.tree) {
-                // Minerar árvore inteira
                 target.userData.tree.forEach(p => {
                     const partId = `${p.position.x}_${p.position.y}_${p.position.z}`;
                     world.destroyedResources.add(partId);
@@ -271,9 +308,7 @@ function update() {
                     if (p.name === "wood") player.collect("wood");
                 });
             } else {
-                // Minerar bloco individual
                 if (isUserBlock) {
-                    // Remove dos userBlocks
                     world.userBlocks = world.userBlocks.filter(b => b !== target);
                 }
                 
