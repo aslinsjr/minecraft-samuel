@@ -28,8 +28,9 @@
             }
         }
     </script>
-    <script type="module" src="js/main.js"></script>
     <script>
+        const AUTH_URL = 'http://localhost:3001/auth.html'; // Configurar URL da auth aqui
+        
         // Mostrar username
         const username = sessionStorage.getItem('username');
         if (username) {
@@ -39,9 +40,10 @@
         // Logout
         document.getElementById('logout-btn').addEventListener('click', () => {
             sessionStorage.clear();
-            window.location.href = 'auth.html';
+            window.location.href = AUTH_URL;
         });
     </script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>

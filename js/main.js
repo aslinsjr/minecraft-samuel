@@ -3,22 +3,49 @@ import { Player } from './Player.js';
 import { World } from './World.js';
 
 const API_URL = 'http://localhost:3000/api';
+const AUTH_URL = 'http://localhost:3001/auth.html'; // Configurar URL da auth aqui
 
-// Verificar autenticação
-const token = sessionStorage.getItem('token');
-if (!token) {
-    window.location.href = 'auth.html';
-}
-
-// Obter cores do jogador
+// Pegar dados da URL ou sessionStorage
+const urlParams = new URLSearchParams(window.location.search);
+let token = urlParams.get('token');
+let username = urlParams.get('username');
 let playerColors = null;
-try {
+
+if (token) {
+    // Dados vieram da URL, salvar no sessionStorage
+    sessionStorage.setItem('token', token);
+    if (username) sessionStorage.setItem('username', username);
+    
+    const colorsParam = urlParams.get('colors');
+    if (colorsParam) {
+        try {
+            playerColors = JSON.parse(colorsParam);
+            sessionStorage.setItem('playerColors', colorsParam);
+        } catch (e) {
+            console.error('Erro ao parsear cores:', e);
+        }
+    }
+    
+    // Limpar URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+} else {
+    // Tentar pegar do sessionStorage
+    token = sessionStorage.getItem('token');
+    username = sessionStorage.getItem('username');
+    
     const colorsStr = sessionStorage.getItem('playerColors');
     if (colorsStr) {
-        playerColors = JSON.parse(colorsStr);
+        try {
+            playerColors = JSON.parse(colorsStr);
+        } catch (e) {
+            console.error('Erro ao carregar cores:', e);
+        }
     }
-} catch (e) {
-    console.error('Erro ao carregar cores do jogador:', e);
+}
+
+// Se não tem token, redirecionar para auth
+if (!token) {
+    window.location.href = AUTH_URL;
 }
 
 // --- CONFIGURAÇÃO INICIAL ---
@@ -99,6 +126,10 @@ async function saveGame() {
 
         if (response.ok) {
             showSaveIndicator();
+        } else if (response.status === 401) {
+            // Token inválido, redirecionar para login
+            sessionStorage.clear();
+            window.location.href = AUTH_URL;
         } else {
             console.error('Erro ao salvar no servidor');
         }
@@ -116,6 +147,12 @@ async function loadGame() {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token inválido
+                sessionStorage.clear();
+                window.location.href = AUTH_URL;
+                return;
+            }
             throw new Error('Erro ao carregar');
         }
 
