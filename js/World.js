@@ -59,9 +59,6 @@ export class World {
                 if (distance > islandRadius) {
                     y -= (distance - islandRadius) * 0.8;
                 }
-                
-                // Limitar profundidade mínima
-                y = Math.max(y, seaFloorY);
 
                 if (y >= 0) {
                     // ILHA - terreno acima da água
@@ -77,11 +74,14 @@ export class World {
                         this.createStone(x, y + 1, z);
                     }
                 } else {
-                    // OCEANO - gerar fundo com camadas (sempre desde seaFloorY até y)
-                    for (let fy = seaFloorY; fy <= y; fy++) {
+                    // OCEANO - gerar fundo sólido desde seaFloorY até a superfície natural
+                    // Garantir que topY nunca seja menor que seaFloorY
+                    const topY = Math.max(y, seaFloorY);
+                    
+                    for (let fy = seaFloorY; fy <= topY; fy++) {
                         let type = 'stone';
                         // Últimas 2 camadas são sand
-                        if (fy >= y - 1) {
+                        if (fy >= topY - 1) {
                             type = 'sand';
                         }
                         this.spawnBlock(x, fy, z, type, false);
@@ -90,9 +90,9 @@ export class World {
                     
                     // Adicionar pedras mineráveis no fundo oceânico (5% de chance)
                     const rand = Math.random();
-                    if (rand < 0.05 && y < -2) {
-                        this.stonesData.push({ x: x, y: y + 1, z: z });
-                        this.createStone(x, y + 1, z);
+                    if (rand < 0.05 && topY < -2) {
+                        this.stonesData.push({ x: x, y: topY + 1, z: z });
+                        this.createStone(x, topY + 1, z);
                     }
 
                     // SUPERFÍCIE DA ÁGUA
@@ -105,6 +105,8 @@ export class World {
                 }
             }
         }
+        
+        console.log(`Mundo gerado: ${this.blocks.length} blocos totais, ${this.terrainData.length} terreno`);
     }
 
     loadWorld(terrainData, treesData, stonesData, destroyedResources) {
@@ -112,6 +114,8 @@ export class World {
         this.treesData = treesData || [];
         this.stonesData = stonesData || [];
         this.destroyedResources = new Set(destroyedResources || []);
+
+        console.log(`Carregando mundo: ${this.terrainData.length} blocos de terreno`);
 
         const size = 35;
 
@@ -133,6 +137,8 @@ export class World {
             }
             this.spawnBlock(t.x, t.y, t.z, type, false);
         });
+        
+        console.log(`Blocos de terreno carregados: ${this.blocks.length}`);
 
         // Carregar água
         for (let x = -size; x < size; x++) {
