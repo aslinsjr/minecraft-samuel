@@ -59,6 +59,9 @@ export class World {
                 if (distance > islandRadius) {
                     y -= (distance - islandRadius) * 0.8;
                 }
+                
+                // Limitar profundidade mínima
+                y = Math.max(y, seaFloorY);
 
                 if (y >= 0) {
                     // ILHA - terreno acima da água
@@ -74,11 +77,22 @@ export class World {
                         this.createStone(x, y + 1, z);
                     }
                 } else {
-                    // OCEANO - gerar fundo com camadas
+                    // OCEANO - gerar fundo com camadas (sempre desde seaFloorY até y)
                     for (let fy = seaFloorY; fy <= y; fy++) {
-                        const type = fy === y ? 'sand' : 'stone';
+                        let type = 'stone';
+                        // Últimas 2 camadas são sand
+                        if (fy >= y - 1) {
+                            type = 'sand';
+                        }
                         this.spawnBlock(x, fy, z, type, false);
                         this.terrainData.push({ x, y: fy, z });
+                    }
+                    
+                    // Adicionar pedras mineráveis no fundo oceânico (5% de chance)
+                    const rand = Math.random();
+                    if (rand < 0.05 && y < -2) {
+                        this.stonesData.push({ x: x, y: y + 1, z: z });
+                        this.createStone(x, y + 1, z);
                     }
 
                     // SUPERFÍCIE DA ÁGUA
