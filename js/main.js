@@ -323,7 +323,9 @@ function update() {
     }
 
     // FÍSICA DE GRAVIDADE VS NATAÇÃO
+    // Raycaster mais longo para detectar chão mesmo com queda rápida
     ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), new THREE.Vector3(0, -1, 0));
+    ray.far = 10; // Aumentar alcance para detectar chão distante
     const ground = ray.intersectObjects(world.blocks);
     
     if (ground.length > 0 && ground[0].distance <= 1.05) {
@@ -344,7 +346,9 @@ function update() {
     vVel = Math.max(vVel, player.isSubmerged ? -0.1 : -0.5);
     player.group.position.y += vVel;
 
-    if (player.group.position.y < -10) {
+    // Sistema de segurança - respawn se cair abaixo do fundo do oceano
+    if (player.group.position.y < -8) {
+        console.warn('⚠️ Jogador caiu abaixo do fundo do oceano! Respawnando...');
         player.group.position.set(0, 10, 0);
         vVel = 0;
     }

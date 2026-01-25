@@ -43,7 +43,7 @@ export class World {
     }
 
     generate() {
-        const size = 35;
+        const size = 60;  // Aumentado de 35 para 60 - mundo maior
         const islandRadius = 15;
         const seaFloorY = -6; // Profundidade do oceano
 
@@ -77,11 +77,12 @@ export class World {
                         this.createStone(x, y + 1, z);
                     }
                 } else {
-                    // OCEANO - gerar fundo com camadas (sempre desde seaFloorY até y)
-                    for (let fy = seaFloorY; fy <= y; fy++) {
+                    // OCEANO - gerar fundo COMPLETO desde seaFloorY até a superfície (-1)
+                    // Isso garante um fundo sólido independente da profundidade calculada
+                    for (let fy = seaFloorY; fy <= -1; fy++) {
                         let type = 'stone';
-                        // Últimas 2 camadas são sand
-                        if (fy >= y - 1) {
+                        // Últimas 2 camadas são sand (-2 e -1)
+                        if (fy >= -2) {
                             type = 'sand';
                         }
                         this.spawnBlock(x, fy, z, type, false);
@@ -90,9 +91,10 @@ export class World {
                     
                     // Adicionar pedras mineráveis no fundo oceânico (5% de chance)
                     const rand = Math.random();
-                    if (rand < 0.05 && y < -2) {
-                        this.stonesData.push({ x: x, y: y + 1, z: z });
-                        this.createStone(x, y + 1, z);
+                    if (rand < 0.05) {
+                        const stoneY = seaFloorY + 1; // Pedras no fundo do oceano
+                        this.stonesData.push({ x: x, y: stoneY, z: z });
+                        this.createStone(x, stoneY, z);
                     }
 
                     // SUPERFÍCIE DA ÁGUA
@@ -113,7 +115,7 @@ export class World {
         this.stonesData = stonesData || [];
         this.destroyedResources = new Set(destroyedResources || []);
 
-        const size = 35;
+        const size = 60;  // Deve corresponder ao tamanho usado no generate()
 
         // Carregar terreno (inferir tipo pela profundidade)
         this.terrainData.forEach(t => {
