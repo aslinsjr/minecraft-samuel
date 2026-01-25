@@ -344,7 +344,7 @@ function update() {
     vVel = Math.max(vVel, player.isSubmerged ? -0.1 : -0.5);
     player.group.position.y += vVel;
 
-    if (player.group.position.y < -20) {
+    if (player.group.position.y < -10) {
         player.group.position.set(0, 10, 0);
         vVel = 0;
     }
