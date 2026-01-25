@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Player } from './Player.js';
 import { World } from './World.js';
 
-const API_URL = 'https://ze-mineiro-api.vercel.app/';
+const API_URL = 'https://ze-mineiro-api.vercel.app/api';
 const AUTH_URL = 'https://ze-mineiro-login.vercel.app/'; // Configurar URL da auth aqui
 
 // Pegar dados da URL ou sessionStorage
