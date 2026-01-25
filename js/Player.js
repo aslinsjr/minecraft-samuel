@@ -9,6 +9,10 @@ export class Player {
         this.miningProgress = 0;
         this.selectedItem = 'wood';
 
+        // SISTEMA DE OXIGÊNIO
+        this.oxygen = 100;
+        this.isSubmerged = false;
+
         // Cores padrão ou customizadas
         const colors = customColors || {
             skin: '#ffdbac',
@@ -95,12 +99,40 @@ export class Player {
         scene.add(this.group);
     }
     
+    updateOxygen() {
+        if (this.isSubmerged) {
+            // Perda de oxigênio (0.01 por frame = ~3 minutos a 60fps)
+            this.oxygen = Math.max(0, this.oxygen - 0.01);
+        } else {
+            // Recuperação rápida ao sair da água
+            this.oxygen = Math.min(100, this.oxygen + 0.5);
+        }
+
+        // Atualização da UI (se existir)
+        const bar = document.getElementById('oxygen-bar');
+        if (bar) {
+            bar.style.width = `${this.oxygen}%`;
+            bar.style.backgroundColor = this.oxygen < 25 ? '#ff4444' : '#44ffff';
+        }
+
+        // Respawn ao ficar sem ar
+        if (this.oxygen <= 0) {
+            this.respawn();
+        }
+    }
+
+    respawn() {
+        alert("Você ficou sem ar!");
+        this.oxygen = 100;
+        this.group.position.set(0, 10, 0);
+    }
+    
     collect(type) {
         if (type === "wood" || type === "leaves") {
             this.inventory.wood++;
             const el = document.getElementById('count-wood');
             if (el) el.innerText = this.inventory.wood;
-        } else if (type === "stone") {
+        } else if (type === "stone" || type === "sand") {
             this.inventory.stone++;
             const el = document.getElementById('count-stone');
             if (el) el.innerText = this.inventory.stone;
@@ -108,8 +140,10 @@ export class Player {
     }
 
     animate(isMoving, isMining) {
+        const speed = this.isSubmerged ? 0.05 : 0.15;
+        
         if (isMoving) {
-            this.walkTime += 0.15;
+            this.walkTime += speed;
             this.leftLeg.rotation.x = Math.sin(this.walkTime) * 0.5;
             this.rightLeg.rotation.x = -Math.sin(this.walkTime) * 0.5;
             this.leftArm.rotation.x = -Math.sin(this.walkTime) * 0.5;

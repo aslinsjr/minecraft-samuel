@@ -21,22 +21,23 @@ export class World {
             stone: new THREE.MeshLambertMaterial({ color: 0x808080 }),
             wood: new THREE.MeshLambertMaterial({ color: 0x5d4037, transparent: true }),
             leaf: new THREE.MeshLambertMaterial({ color: 0x2e7d32, transparent: true }),
-            water: new THREE.MeshLambertMaterial({ color: 0x0077be, transparent: true, opacity: 0.6 })
+            water: new THREE.MeshLambertMaterial({ color: 0x0077be, transparent: true, opacity: 0.6 }),
+            sand: new THREE.MeshLambertMaterial({ color: 0xd2b48c })
         };
     }
 
     spawnBlock(x, y, z, type, isUserBuilt = false) {
-        const block = new THREE.Mesh(this.blockGeo, this.mats[type]);
+        const block = new THREE.Mesh(this.blockGeo, this.mats[type] || this.mats.stone);
         block.position.set(x, y, z);
         block.userData.type = type;
-        block.name = type; // Para identificar na mineração
+        block.name = type;
         
         this.scene.add(block);
         this.blocks.push(block);
         
         if (isUserBuilt) {
             this.userBlocks.push(block);
-            this.resources.push(block); // Adiciona aos resources para poder minerar
+            this.resources.push(block);
         }
         return block;
     }
@@ -44,6 +45,7 @@ export class World {
     generate() {
         const size = 35;
         const islandRadius = 15;
+        const seaFloorY = -6; // Profundidade do oceano
 
         this.terrainData = [];
         this.treesData = [];
@@ -59,6 +61,7 @@ export class World {
                 }
 
                 if (y >= 0) {
+                    // ILHA - terreno acima da água
                     this.spawnBlock(x, y, z, 'grass', false);
                     this.terrainData.push({ x, y, z });
 
@@ -66,12 +69,19 @@ export class World {
                     if (rand < 0.03) {
                         this.treesData.push({ x: x, y: y + 1, z: z });
                         this.createTree(x, y + 1, z);
-                    }
-                    else if (rand < 0.06) {
+                    } else if (rand < 0.06) {
                         this.stonesData.push({ x: x, y: y + 1, z: z });
                         this.createStone(x, y + 1, z);
                     }
                 } else {
+                    // OCEANO - gerar fundo com camadas
+                    for (let fy = seaFloorY; fy <= y; fy++) {
+                        const type = fy === y ? 'sand' : 'stone';
+                        this.spawnBlock(x, fy, z, type, false);
+                        this.terrainData.push({ x, y: fy, z });
+                    }
+
+                    // SUPERFÍCIE DA ÁGUA
                     const water = new THREE.Mesh(this.blockGeo, this.mats.water);
                     water.position.set(x, -0.5, z);
                     water.userData.baseX = x;
@@ -91,16 +101,19 @@ export class World {
 
         const size = 35;
 
-        // Carregar terreno
+        // Carregar terreno (inferir tipo pela profundidade)
         this.terrainData.forEach(t => {
-            this.spawnBlock(t.x, t.y, t.z, 'grass', false);
+            let type = 'grass';
+            if (t.y < 0) type = 'sand';
+            if (t.y < -2) type = 'stone';
+            this.spawnBlock(t.x, t.y, t.z, type, false);
         });
 
         // Carregar água
         for (let x = -size; x < size; x++) {
             for (let z = -size; z < size; z++) {
-                const hasGrass = this.terrainData.some(t => t.x === x && t.z === z);
-                if (!hasGrass) {
+                const hasSurface = this.terrainData.some(t => t.x === x && t.z === z && t.y >= 0);
+                if (!hasSurface) {
                     const water = new THREE.Mesh(this.blockGeo, this.mats.water);
                     water.position.set(x, -0.5, z);
                     water.userData.baseX = x;
@@ -130,9 +143,8 @@ export class World {
 
     updateWater(time) {
         this.waterBlocks.forEach(w => {
-            const wave = Math.sin(time + w.userData.baseX * 0.3) * 0.2 +
-                Math.cos(time + w.userData.baseZ * 0.3) * 0.2;
-            w.position.y = -0.7 + wave;
+            const wave = Math.sin(time + w.userData.baseX * 0.3) * 0.15;
+            w.position.y = -0.6 + wave;
         });
     }
 
