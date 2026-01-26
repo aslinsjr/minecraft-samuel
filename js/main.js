@@ -290,27 +290,13 @@ function handleCameraObstruction() {
 
 function update() {
     const oldPos = player.group.position.clone();
-    
-    // DETECÇÃO DE SUBMERSÃO
-    player.isSubmerged = player.group.position.y < -0.5;
-    
-    // EFEITOS VISUAIS DE ÁGUA
-    if (player.isSubmerged) {
-        scene.fog = new THREE.Fog(0x0077be, 1, 20);
-        scene.background.set(0x005588);
-    } else {
-        scene.fog = null;
-        scene.background.set(0x87CEEB);
-    }
-    
     const isMoving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'];
-    const moveSpeed = player.isSubmerged ? 0.04 : 0.1;
 
     if (keys['KeyA']) player.group.rotation.y += 0.05;
     if (keys['KeyD']) player.group.rotation.y -= 0.05;
 
     if (isMoving) {
-        let dz = keys['KeyW'] ? -moveSpeed : (keys['KeyS'] ? moveSpeed : 0);
+        let dz = keys['KeyW'] ? -0.1 : (keys['KeyS'] ? 0.1 : 0);
         player.group.translateZ(dz);
 
         const dir = new THREE.Vector3(0, 0, dz > 0 ? 1 : -1).applyQuaternion(player.group.quaternion);
@@ -322,33 +308,19 @@ function update() {
         }
     }
 
-    // FÍSICA DE GRAVIDADE VS NATAÇÃO
-    // Raycaster mais longo para detectar chão mesmo com queda rápida
     ray.set(player.group.position.clone().add(new THREE.Vector3(0, 1, 0)), new THREE.Vector3(0, -1, 0));
-    ray.far = 10; // Aumentar alcance para detectar chão distante
     const ground = ray.intersectObjects(world.blocks);
-    
     if (ground.length > 0 && ground[0].distance <= 1.05) {
         vVel = 0;
         player.group.position.y = ground[0].point.y;
         if (keys['Space']) vVel = 0.15;
     } else {
-        // Gravidade reduzida na água
-        const gravity = player.isSubmerged ? 0.002 : 0.008;
-        vVel -= gravity;
-        
-        // Propulsão para cima na água
-        if (player.isSubmerged && keys['Space']) {
-            vVel = 0.04;
-        }
+        vVel -= 0.008;
     }
-    
-    vVel = Math.max(vVel, player.isSubmerged ? -0.1 : -0.5);
+    vVel = Math.max(vVel, -0.5);
     player.group.position.y += vVel;
 
-    // Sistema de segurança - respawn se cair abaixo do fundo do oceano
-    if (player.group.position.y < -8) {
-        console.warn('⚠️ Jogador caiu abaixo do fundo do oceano! Respawnando...');
+    if (player.group.position.y < -10) {
         player.group.position.set(0, 10, 0);
         vVel = 0;
     }
@@ -404,9 +376,6 @@ function update() {
         }
     }
 
-    // ATUALIZAR OXIGÊNIO
-    player.updateOxygen();
-    
     player.animate(isMoving, isMining);
     
     const camPos = new THREE.Vector3(0, 4, 8).applyQuaternion(player.group.quaternion).add(player.group.position);

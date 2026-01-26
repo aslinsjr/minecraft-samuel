@@ -21,31 +21,29 @@ export class World {
             stone: new THREE.MeshLambertMaterial({ color: 0x808080 }),
             wood: new THREE.MeshLambertMaterial({ color: 0x5d4037, transparent: true }),
             leaf: new THREE.MeshLambertMaterial({ color: 0x2e7d32, transparent: true }),
-            water: new THREE.MeshLambertMaterial({ color: 0x0077be, transparent: true, opacity: 0.6 }),
-            sand: new THREE.MeshLambertMaterial({ color: 0xd2b48c })
+            water: new THREE.MeshLambertMaterial({ color: 0x0077be, transparent: true, opacity: 0.6 })
         };
     }
 
     spawnBlock(x, y, z, type, isUserBuilt = false) {
-        const block = new THREE.Mesh(this.blockGeo, this.mats[type] || this.mats.stone);
+        const block = new THREE.Mesh(this.blockGeo, this.mats[type]);
         block.position.set(x, y, z);
         block.userData.type = type;
-        block.name = type;
+        block.name = type; // Para identificar na mineração
         
         this.scene.add(block);
         this.blocks.push(block);
         
         if (isUserBuilt) {
             this.userBlocks.push(block);
-            this.resources.push(block);
+            this.resources.push(block); // Adiciona aos resources para poder minerar
         }
         return block;
     }
 
     generate() {
-        const size = 60;  // Aumentado de 35 para 60 - mundo maior
+        const size = 35;
         const islandRadius = 15;
-        const seaFloorY = -6; // Profundidade do oceano
 
         this.terrainData = [];
         this.treesData = [];
@@ -59,12 +57,8 @@ export class World {
                 if (distance > islandRadius) {
                     y -= (distance - islandRadius) * 0.8;
                 }
-                
-                // Limitar profundidade mínima
-                y = Math.max(y, seaFloorY);
 
                 if (y >= 0) {
-                    // ILHA - terreno acima da água
                     this.spawnBlock(x, y, z, 'grass', false);
                     this.terrainData.push({ x, y, z });
 
@@ -72,32 +66,12 @@ export class World {
                     if (rand < 0.03) {
                         this.treesData.push({ x: x, y: y + 1, z: z });
                         this.createTree(x, y + 1, z);
-                    } else if (rand < 0.06) {
+                    }
+                    else if (rand < 0.06) {
                         this.stonesData.push({ x: x, y: y + 1, z: z });
                         this.createStone(x, y + 1, z);
                     }
                 } else {
-                    // OCEANO - gerar fundo COMPLETO desde seaFloorY até a superfície (-1)
-                    // Isso garante um fundo sólido independente da profundidade calculada
-                    for (let fy = seaFloorY; fy <= -1; fy++) {
-                        let type = 'stone';
-                        // Últimas 2 camadas são sand (-2 e -1)
-                        if (fy >= -2) {
-                            type = 'sand';
-                        }
-                        this.spawnBlock(x, fy, z, type, false);
-                        this.terrainData.push({ x, y: fy, z });
-                    }
-                    
-                    // Adicionar pedras mineráveis no fundo oceânico (5% de chance)
-                    const rand = Math.random();
-                    if (rand < 0.05) {
-                        const stoneY = seaFloorY + 1; // Pedras no fundo do oceano
-                        this.stonesData.push({ x: x, y: stoneY, z: z });
-                        this.createStone(x, stoneY, z);
-                    }
-
-                    // SUPERFÍCIE DA ÁGUA
                     const water = new THREE.Mesh(this.blockGeo, this.mats.water);
                     water.position.set(x, -0.5, z);
                     water.userData.baseX = x;
@@ -115,21 +89,18 @@ export class World {
         this.stonesData = stonesData || [];
         this.destroyedResources = new Set(destroyedResources || []);
 
-        const size = 60;  // Deve corresponder ao tamanho usado no generate()
+        const size = 35;
 
-        // Carregar terreno (inferir tipo pela profundidade)
+        // Carregar terreno
         this.terrainData.forEach(t => {
-            let type = 'grass';
-            if (t.y < 0) type = 'sand';
-            if (t.y < -2) type = 'stone';
-            this.spawnBlock(t.x, t.y, t.z, type, false);
+            this.spawnBlock(t.x, t.y, t.z, 'grass', false);
         });
 
         // Carregar água
         for (let x = -size; x < size; x++) {
             for (let z = -size; z < size; z++) {
-                const hasSurface = this.terrainData.some(t => t.x === x && t.z === z && t.y >= 0);
-                if (!hasSurface) {
+                const hasGrass = this.terrainData.some(t => t.x === x && t.z === z);
+                if (!hasGrass) {
                     const water = new THREE.Mesh(this.blockGeo, this.mats.water);
                     water.position.set(x, -0.5, z);
                     water.userData.baseX = x;
@@ -159,8 +130,9 @@ export class World {
 
     updateWater(time) {
         this.waterBlocks.forEach(w => {
-            const wave = Math.sin(time + w.userData.baseX * 0.3) * 0.15;
-            w.position.y = -0.6 + wave;
+            const wave = Math.sin(time + w.userData.baseX * 0.3) * 0.2 +
+                Math.cos(time + w.userData.baseZ * 0.3) * 0.2;
+            w.position.y = -0.7 + wave;
         });
     }
 
