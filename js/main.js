@@ -15,6 +15,8 @@ if (token) {
     // Dados vieram da URL, salvar no sessionStorage
     sessionStorage.setItem('token', token);
     if (username) sessionStorage.setItem('username', username);
+
+    console.log(username)
     
     const colorsParam = urlParams.get('colors');
     if (colorsParam) {
@@ -371,8 +373,6 @@ window.addEventListener('mousedown', (e) => {
             placeBlock();
         } else {
             isMining = true;
-            // Mostrar feedback visual de mineração
-            showMiningFeedback();
         }
     }
 });
