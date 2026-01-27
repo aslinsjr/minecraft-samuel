@@ -176,6 +176,8 @@ async function loadGame() {
             return;
         }
 
+        console.log(data)
+
         // Restaurar inventário
         player.inventory = data.inventory;
         if (document.getElementById('count-wood')) document.getElementById('count-wood').innerText = player.inventory.wood;
@@ -245,38 +247,38 @@ function showModeFeedback(mode) {
     }
 }
 
-function showMiningFeedback() {
-    const feedback = document.createElement('div');
-    feedback.id = 'mining-feedback';
-    feedback.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 24px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.3s;
-        z-index: 1000;
-    `;
-    feedback.textContent = '⛏️';
-    document.body.appendChild(feedback);
+// function showMiningFeedback() {
+//     const feedback = document.createElement('div');
+//     feedback.id = 'mining-feedback';
+//     feedback.style.cssText = `
+//         position: fixed;
+//         top: 50%;
+//         left: 50%;
+//         transform: translate(-50%, -50%);
+//         color: white;
+//         font-size: 24px;
+//         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+//         pointer-events: none;
+//         opacity: 0;
+//         transition: opacity 0.3s;
+//         z-index: 1000;
+//     `;
+//     feedback.textContent = '⛏️';
+//     document.body.appendChild(feedback);
     
-    // Animação
-    setTimeout(() => {
-        feedback.style.opacity = '1';
-        setTimeout(() => {
-            feedback.style.opacity = '0';
-            setTimeout(() => {
-                if (feedback.parentNode) {
-                    feedback.parentNode.removeChild(feedback);
-                }
-            }, 300);
-        }, 200);
-    }, 10);
-}
+//     // Animação
+//     setTimeout(() => {
+//         feedback.style.opacity = '1';
+//         setTimeout(() => {
+//             feedback.style.opacity = '0';
+//             setTimeout(() => {
+//                 if (feedback.parentNode) {
+//                     feedback.parentNode.removeChild(feedback);
+//                 }
+//             }, 300);
+//         }, 200);
+//     }, 10);
+// }
 
 function setupSlotClickHandlers() {
     const slots = document.querySelectorAll('.slot');
