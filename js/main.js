@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Player } from './Player.js';
 import { World } from './World.js';
+import { Pikachu, Bulbasaur, Charizard, Mew } from './Pokemon.js';
 
 const API_URL = 'https://ze-mineiro-api.vercel.app/api';
 const AUTH_URL = 'https://ze-mineiro-login.vercel.app/'; // Configurar URL da auth aqui
@@ -64,6 +65,13 @@ scene.add(sun, new THREE.AmbientLight(0xffffff, 0.6));
 // --- MUNDO E JOGADOR ---
 const world = new World(scene);
 const player = new Player(scene, playerColors);
+
+// --- SISTEMA DE SPAWN DE POKÉMON ---
+const pokemonClasses = [Pikachu, Bulbasaur, Charizard, Mew];
+const activePokemons = [];
+const maxPokemons = 4;
+let nextSpawnTime = 5; // Primeiro spawn em 5 segundos
+const spawnInterval = { min: 10, max: 30 }; // 10-30 segundos entre spawns
 
 // --- ESTADOS E VARIÁVEIS ---
 const keys = {};
@@ -255,6 +263,50 @@ window.addEventListener('mouseup', () => isMining = false);
 
 // --- FUNÇÕES DE LÓGICA ---
 
+function spawnPokemon() {
+    if (activePokemons.length >= maxPokemons) return;
+    
+    const PokemonClass = pokemonClasses[Math.floor(Math.random() * pokemonClasses.length)];
+    
+    // Encontrar posição válida no terreno
+    let x, z, y;
+    let attempts = 0;
+    do {
+        x = Math.floor(Math.random() * 50 - 25);
+        z = Math.floor(Math.random() * 50 - 25);
+        
+        // Buscar altura do terreno nessa posição
+        const terrainBlock = world.blocks.find(b => 
+            Math.abs(b.position.x - x) < 1 && 
+            Math.abs(b.position.z - z) < 1
+        );
+        
+        if (terrainBlock && terrainBlock.position.y >= 0) {
+            y = terrainBlock.position.y + 1;
+            break;
+        }
+        attempts++;
+    } while (attempts < 20);
+    
+    if (attempts >= 20) return; // Não encontrou posição válida
+    
+    const pokemon = new PokemonClass(scene);
+    pokemon.group.position.set(x, y, z);
+    activePokemons.push(pokemon);
+}
+
+function updatePokemons(delta) {
+    for (let i = activePokemons.length - 1; i >= 0; i--) {
+        const pokemon = activePokemons[i];
+        pokemon.update(delta);
+        
+        if (pokemon.shouldDespawn()) {
+            pokemon.remove();
+            activePokemons.splice(i, 1);
+        }
+    }
+}
+
 function placeBlock() {
     const type = player.selectedItem;
     if (player.inventory[type] > 0) {
@@ -291,6 +343,15 @@ function handleCameraObstruction() {
 function update() {
     const oldPos = player.group.position.clone();
     const isMoving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'];
+
+    // Gerenciar spawns de Pokémon
+    nextSpawnTime -= 1/60; // Aproximadamente 60 FPS
+    if (nextSpawnTime <= 0) {
+        spawnPokemon();
+        nextSpawnTime = spawnInterval.min + Math.random() * (spawnInterval.max - spawnInterval.min);
+    }
+    
+    updatePokemons(1/60);
 
     if (keys['KeyA']) player.group.rotation.y += 0.05;
     if (keys['KeyD']) player.group.rotation.y -= 0.05;

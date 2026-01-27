@@ -42,8 +42,8 @@ export class World {
     }
 
     generate() {
-        const size = 35;
-        const islandRadius = 15;
+        const size = 60;
+        const islandRadius = 30;
 
         this.terrainData = [];
         this.treesData = [];
@@ -89,7 +89,7 @@ export class World {
         this.stonesData = stonesData || [];
         this.destroyedResources = new Set(destroyedResources || []);
 
-        const size = 35;
+        const size = 60;
 
         // Carregar terreno
         this.terrainData.forEach(t => {
