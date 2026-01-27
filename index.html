@@ -16,10 +16,54 @@
     </div>
     <button id="logout-btn">Sair</button>
     <div id="save-indicator">Jogo Salvo</div>
-    <div id="inventory">
-        <div class="slot selected" id="slot-1">🌳 <span id="count-wood">0</span></div>
-        <div class="slot" id="slot-2">🧱 <span id="count-stone">0</span></div>
+    <!-- Adicione estes elementos no seu HTML existente -->
+    <div id="mode-indicator">
+        <div class="mode active" id="mining-mode">
+            ⛏️ Modo Mineração
+        </div>
+        <div class="mode" id="building-mode">
+            🧱 Modo Construção
+        </div>
     </div>
+
+    <div id="slot-hint">
+        <div>1 - Madeira 🪵</div>
+        <div>2 - Pedra 🪨</div>
+        <div>B - Alternar Modo</div>
+    </div>
+
+    <!-- Melhore os slots existentes -->
+    <div id="inventory">
+        <div class="slot-container">
+            <div class="slot selected" id="slot-1" data-item="wood">
+                <div class="slot-icon">🪵</div>
+                <div class="slot-name">Madeira</div>
+                <div class="slot-count" id="count-wood">0</div>
+                <div class="slot-key">[1]</div>
+            </div>
+            <div class="slot" id="slot-2" data-item="stone">
+                <div class="slot-icon">🪨</div>
+                <div class="slot-name">Pedra</div>
+                <div class="slot-count" id="count-stone">0</div>
+                <div class="slot-key">[2]</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mode-feedback" style="
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 100;
+    pointer-events: none;
+    "></div>
     <script type="importmap">
         {
             "imports": {
@@ -30,7 +74,7 @@
     </script>
     <script>
         const AUTH_URL = 'https://ze-mineiro-login.vercel.app/'; // Configurar URL da auth aqui
-        
+
         // Mostrar username
         const username = sessionStorage.getItem('username');
         if (username) {

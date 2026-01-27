@@ -71,6 +71,7 @@ let isMining = false;
 let buildMode = false;
 let obscuredObjects = [];
 let vVel = 0;
+let currentMode = 'mining'; // 'mining' ou 'building'
 
 const ray = new THREE.Raycaster();
 const cameraRay = new THREE.Raycaster();
@@ -216,6 +217,102 @@ function showSaveIndicator() {
     }
 }
 
+// --- FUNÇÕES UI/UX ---
+
+function updateModeIndicator() {
+    const miningEl = document.getElementById('mining-mode');
+    const buildingEl = document.getElementById('building-mode');
+    
+    if (miningEl && buildingEl) {
+        if (currentMode === 'mining') {
+            miningEl.classList.add('active');
+            buildingEl.classList.remove('active');
+        } else {
+            buildingEl.classList.add('active');
+            miningEl.classList.remove('active');
+        }
+    }
+}
+
+function showModeFeedback(mode) {
+    const feedback = document.getElementById('mode-feedback');
+    if (feedback) {
+        feedback.textContent = mode === 'building' ? '🧱 Modo Construção Ativado' : '⛏️ Modo Mineração Ativado';
+        feedback.style.opacity = '1';
+        setTimeout(() => {
+            feedback.style.opacity = '0';
+        }, 1500);
+    }
+}
+
+function showMiningFeedback() {
+    const feedback = document.createElement('div');
+    feedback.id = 'mining-feedback';
+    feedback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 24px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 1000;
+    `;
+    feedback.textContent = '⛏️';
+    document.body.appendChild(feedback);
+    
+    // Animação
+    setTimeout(() => {
+        feedback.style.opacity = '1';
+        setTimeout(() => {
+            feedback.style.opacity = '0';
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.parentNode.removeChild(feedback);
+                }
+            }, 300);
+        }, 200);
+    }, 10);
+}
+
+function setupSlotClickHandlers() {
+    const slots = document.querySelectorAll('.slot');
+    slots.forEach(slot => {
+        slot.addEventListener('click', (e) => {
+            const slotId = e.currentTarget.id;
+            if (slotId === 'slot-1') {
+                player.selectSlot(1);
+                document.querySelectorAll('.slot').forEach(el => el.classList.remove('selected'));
+                document.getElementById('slot-1').classList.add('selected');
+            } else if (slotId === 'slot-2') {
+                player.selectSlot(2);
+                document.querySelectorAll('.slot').forEach(el => el.classList.remove('selected'));
+                document.getElementById('slot-2').classList.add('selected');
+            }
+        });
+    });
+}
+
+// --- INICIALIZAÇÃO UI ---
+function initializeUI() {
+    // Inicializar indicador de modo
+    updateModeIndicator();
+    
+    // Configurar handlers de clique nos slots
+    setupSlotClickHandlers();
+    
+    // Configurar inventário inicial
+    if (document.getElementById('count-wood')) {
+        document.getElementById('count-wood').innerText = player.inventory.wood;
+    }
+    if (document.getElementById('count-stone')) {
+        document.getElementById('count-stone').innerText = player.inventory.stone;
+    }
+}
+
 // Auto-save periódico (a cada 30 segundos)
 setInterval(() => {
     saveGame();
@@ -229,14 +326,38 @@ window.addEventListener('beforeunload', () => {
 // Carregar jogo
 loadGame();
 
+// Inicializar UI após o carregamento
+setTimeout(() => {
+    initializeUI();
+}, 500);
+
 // --- EVENTOS DE INPUT ---
 window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    if (e.code === 'Digit1') player.selectSlot(1);
-    if (e.code === 'Digit2') player.selectSlot(2);
+    
+    // Seleção de slot por teclado
+    if (e.code === 'Digit1') {
+        player.selectSlot(1);
+        // Atualizar seleção visual
+        document.querySelectorAll('.slot').forEach(el => el.classList.remove('selected'));
+        const activeSlot = document.getElementById('slot-1');
+        if (activeSlot) activeSlot.classList.add('selected');
+    }
+    if (e.code === 'Digit2') {
+        player.selectSlot(2);
+        // Atualizar seleção visual
+        document.querySelectorAll('.slot').forEach(el => el.classList.remove('selected'));
+        const activeSlot = document.getElementById('slot-2');
+        if (activeSlot) activeSlot.classList.add('selected');
+    }
+    
+    // Alternar modo construção/mineração
     if (e.code === 'KeyB') {
         buildMode = !buildMode;
         ghostBlock.visible = buildMode;
+        currentMode = buildMode ? 'building' : 'mining';
+        updateModeIndicator();
+        showModeFeedback(currentMode);
     }
 });
 
@@ -248,9 +369,12 @@ window.addEventListener('mousedown', (e) => {
             placeBlock();
         } else {
             isMining = true;
+            // Mostrar feedback visual de mineração
+            showMiningFeedback();
         }
     }
 });
+
 window.addEventListener('mouseup', () => isMining = false);
 
 // --- FUNÇÕES DE LÓGICA ---
@@ -264,7 +388,27 @@ function placeBlock() {
         const el = document.getElementById(`count-${type}`);
         if (el) el.innerText = player.inventory[type];
         
+        // Feedback visual
+        const feedback = document.getElementById('place-feedback');
+        if (feedback) {
+            feedback.textContent = '🧱 Bloco Colocado!';
+            feedback.style.opacity = '1';
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+            }, 800);
+        }
+        
         saveGame();
+    } else {
+        // Feedback de falta de recursos
+        const feedback = document.getElementById('place-feedback');
+        if (feedback) {
+            feedback.textContent = '❌ Sem recursos!';
+            feedback.style.opacity = '1';
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+            }, 800);
+        }
     }
 }
 
@@ -394,3 +538,10 @@ function animate() {
 }
 
 animate();
+
+// Redimensionamento da janela
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});

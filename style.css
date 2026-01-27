@@ -92,3 +92,104 @@ canvas {
     background: rgba(255, 255, 0, 0.2) !important;
     box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
+
+/* Indicador de Modo */
+#mode-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 100;
+}
+
+.mode {
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.mode.active {
+    background: rgba(0, 150, 255, 0.3);
+    color: white;
+    box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+}
+
+/* Dicas de Controles */
+#slot-hint {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    z-index: 100;
+}
+
+#slot-hint div {
+    margin: 5px 0;
+    opacity: 0.8;
+}
+
+/* Melhoria nos Slots */
+.slot-container {
+    display: flex;
+    gap: 15px;
+}
+
+.slot {
+    width: 100px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 3px solid transparent;
+}
+
+.slot:hover {
+    background: rgba(50, 50, 50, 0.8);
+    transform: scale(1.05);
+}
+
+.slot.selected {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.slot-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.slot-name {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.slot-count {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}
+
+.slot-key {
+    font-size: 11px;
+    color: #888;
+    margin-top: 5px;
+}
