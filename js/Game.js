@@ -21,7 +21,6 @@ export class Game {
         // Configuração básica
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x87CEEB);
-        this.scene.fog = new THREE.Fog(0x87CEEB, 50, 100);
         
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         
@@ -113,8 +112,7 @@ export class Game {
     }
 
     setupLights() {
-        // Sol
-        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
         sun.position.set(10, 20, 10);
         sun.castShadow = true;
         sun.shadow.mapSize.width = 2048;
@@ -125,15 +123,9 @@ export class Game {
         sun.shadow.camera.right = 50;
         sun.shadow.camera.top = 50;
         sun.shadow.camera.bottom = -50;
-        sun.shadow.bias = -0.0001;
 
-        // Luz ambiente
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        
-        // Luz hemisférica para céu/chão
-        const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x4d9030, 0.3);
-        
-        this.scene.add(sun, ambientLight, hemiLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(sun, ambientLight);
     }
 
     async initWorldAndPlayer() {
@@ -142,9 +134,6 @@ export class Game {
         
         // Jogador
         this.player = new Player(this.scene, this.authData.playerColors);
-        
-        // Passar referência do mundo ao jogador para o MovementSystem
-        this.player.world = this.world;
         
         // Carregar jogo salvo
         await this.saveSystem.loadGame(this.world, this.player);
@@ -175,15 +164,12 @@ export class Game {
         const deltaTime = this.clock.getDelta();
         
         // Atualizar estado da água
-        this.world.updateWater(performance.now() * 0.001);
+        this.world.updateWater(performance.now() * 0.002);
         
         // Verificar natação
         this.swimSystem.checkWaterCollision(this.player, this.world, this.inputHandler.keys);
         
-        // Passar vVel para o player para a física de natação
-        this.player.vVel = this.movementSystem.vVel;
-        
-        // Movimento
+        // Movimentação
         this.movementSystem.update(
             this.player,
             this.world,
@@ -192,9 +178,6 @@ export class Game {
             this.swimSystem.isSwimming,
             this.swimSystem
         );
-        
-        // Sincronizar vVel de volta
-        this.player.vVel = this.movementSystem.vVel;
         
         // Mineração/Construção
         if (this.inputHandler.isMining && !this.buildingSystem.buildMode) {
@@ -231,13 +214,6 @@ export class Game {
         // Atualizar UI
         this.uiManager.updateSwimStamina(this.swimSystem.swimStamina, SWIM_MAX_TIME);
         this.uiManager.toggleSwimStamina(this.swimSystem.isSwimming || this.swimSystem.swimStamina < SWIM_MAX_TIME);
-        
-        // Feedback visual de afogamento
-        if (this.swimSystem.swimStamina <= 0 && this.swimSystem.isSwimming) {
-            this.scene.fog.color.setHex(0x004466);
-        } else {
-            this.scene.fog.color.setHex(0x87CEEB);
-        }
         
         // Animar jogador
         this.player.animate(
