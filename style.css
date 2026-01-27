@@ -20,7 +20,7 @@ canvas {
 }
 
 #username-display {
-    margin-top: 5px;
+    margin: 5px;
     font-size: 0.9em;
     color: #4ade80;
 }
