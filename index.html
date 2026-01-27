@@ -58,13 +58,7 @@
         }
     </script>
     <script>
-        const AUTH_URL = 'https://ze-mineiro-login.vercel.app/'; // Configurar URL da auth aqui
-
-        // Mostrar username
-        const username = sessionStorage.getItem('username');
-        if (username) {
-            document.getElementById('username-display').textContent = `Jogador: ${username}`;
-        }
+        const AUTH_URL = 'https://ze-mineiro-login.vercel.app/';
 
         // Logout
         document.getElementById('logout-btn').addEventListener('click', () => {

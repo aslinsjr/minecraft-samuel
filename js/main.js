@@ -16,7 +16,7 @@ if (token) {
     sessionStorage.setItem('token', token);
     if (username) sessionStorage.setItem('username', username);
 
-    console.log(username)
+    document.getElementById('username-display').textContent = `Jogador: ${username}`;
     
     const colorsParam = urlParams.get('colors');
     if (colorsParam) {
