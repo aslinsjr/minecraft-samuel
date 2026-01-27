@@ -42,7 +42,7 @@ export class World {
     }
 
     generate() {
-        const size = 35;
+        const size = 30;
         const islandRadius = 20;
 
         this.terrainData = [];
