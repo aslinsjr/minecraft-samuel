@@ -43,7 +43,7 @@ export class World {
 
     generate() {
         const size = 30;
-        const islandRadius = 30;
+        const islandRadius = 10;
 
         this.terrainData = [];
         this.treesData = [];
