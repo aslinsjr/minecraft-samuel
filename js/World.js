@@ -8,12 +8,13 @@ export class World {
         this.waterBlocks = [];
         this.userBlocks = [];
         this.destroyedResources = new Set();
-        
+        this.worldSeed = Math.floor(Math.random() * 1000000);
+
         // Dados para salvamento
         this.terrainData = [];
         this.treesData = [];
         this.stonesData = [];
-        
+
         this.blockGeo = new THREE.BoxGeometry(1, 1, 1);
 
         this.mats = {
@@ -30,10 +31,10 @@ export class World {
         block.position.set(x, y, z);
         block.userData.type = type;
         block.name = type;
-        
+
         this.scene.add(block);
         this.blocks.push(block);
-        
+
         if (isUserBuilt) {
             this.userBlocks.push(block);
             this.resources.push(block);
@@ -45,7 +46,7 @@ export class World {
     generate() {
         const worldSize = 70; // Tamanho total do mundo
         const islandRadius = 15; // Tamanho de cada ilha
-        
+
         // Posições das ilhas (x, z)
         const islandCenters = [
             { x: 0, z: 0 }, // Ilha central original
@@ -82,16 +83,16 @@ export class World {
                 const worldX = centerX + x;
                 const worldZ = centerZ + z;
                 const distance = Math.sqrt(x * x + z * z);
-                
+
                 if (distance <= radius) {
                     // Criar terreno com altura baseada na distância do centro
                     const heightFactor = 1 - (distance / radius);
                     const baseHeight = Math.floor(heightFactor * 3);
-                    
+
                     // Adicionar variação de terreno
                     let y = baseHeight + Math.floor(Math.sin(worldX * 0.1) * 0.5 + Math.cos(worldZ * 0.1) * 0.5);
                     y = Math.max(y, 0); // Garantir que não fique abaixo da água
-                    
+
                     this.spawnBlock(worldX, y, worldZ, 'grass', false);
                     this.terrainData.push({ x: worldX, y, z: worldZ });
 
@@ -105,11 +106,11 @@ export class World {
     // NOVO MÉTODO: Gerar recursos para uma posição
     generateResources(x, y, z) {
         const rand = Math.random();
-        
+
         // Aumentar chance de recursos perto do centro da ilha
         const centerDistance = Math.sqrt(x * x + z * z);
         const resourceChance = 0.05 * (1 - centerDistance / 15); // Diminui perto das bordas
-        
+
         if (rand < resourceChance) {
             this.treesData.push({ x, y: y + 1, z });
             this.createTree(x, y + 1, z);
@@ -125,10 +126,10 @@ export class World {
         for (let x = -worldSize; x < worldSize; x += 2) {
             for (let z = -worldSize; z < worldSize; z += 2) {
                 // Verificar se há bloco de grama nesta posição
-                const hasGrass = this.terrainData.some(t => 
+                const hasGrass = this.terrainData.some(t =>
                     Math.abs(t.x - x) <= 0.5 && Math.abs(t.z - z) <= 0.5
                 );
-                
+
                 if (!hasGrass) {
                     const water = new THREE.Mesh(this.blockGeo, this.mats.water);
                     water.position.set(x, -0.5, z);
@@ -202,7 +203,7 @@ export class World {
 
     createTree(x, y, z) {
         const treeParts = [];
-        
+
         for (let i = 0; i < 3; i++) {
             const partId = `${x}_${y + i}_${z}`;
             if (this.destroyedResources.has(partId)) continue;
