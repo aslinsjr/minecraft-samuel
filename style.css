@@ -323,7 +323,7 @@ canvas {
 }
 
 /* Media Queries para Mobile */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     #inventory {
         bottom: 1rem;
         padding: 10px;
@@ -372,7 +372,7 @@ canvas {
 }
 
 /* Orientação Portrait em Mobile */
-@media (max-width: 768px) and (orientation: portrait) {
+@media (max-width: 900px) and (orientation: portrait) {
     #orientation-alert {
         display: flex;
     }
