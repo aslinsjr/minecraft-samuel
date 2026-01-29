@@ -325,7 +325,7 @@ canvas {
 /* Media Queries para Mobile */
 @media (max-width: 768px) {
     #inventory {
-        bottom: 120px;
+        bottom: 1rem;
         padding: 10px;
     }
 
