@@ -382,7 +382,6 @@ canvas {
     display: none;
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     z-index: 10000;
     flex-direction: column;
     align-items: center;
@@ -438,9 +437,7 @@ canvas {
 }
 
 #start-normal-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    display: none;
 }
 
 #start-normal-btn:active {
