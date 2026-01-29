@@ -9,7 +9,7 @@ export class Player {
         this.miningProgress = 0;
         this.selectedItem = 'wood';
 
-        // Cores padrão ou customizadas
+        // Cores padrÃ£o ou customizadas
         const colors = customColors || {
             skin: '#ffdbac',
             shirt: '#0000ff',
@@ -27,7 +27,7 @@ export class Player {
         const hairMat = new THREE.MeshLambertMaterial({ color: colors.hair });
         const shoeMat = new THREE.MeshLambertMaterial({ color: colors.shoes });
 
-        // --- CABEÇA ---
+        // --- CABEÃ‡A ---
         this.head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), skinMat);
         this.head.position.y = 1.65;
 
@@ -63,7 +63,7 @@ export class Player {
         this.rightShoe.position.set(0, -0.7, 0.05);
         this.rightLeg.add(this.rightShoe);
 
-        // --- BRAÇOS E FERRAMENTA ---
+        // --- BRAÃ‡OS E FERRAMENTA ---
         const handGeo = new THREE.BoxGeometry(0.22, 0.15, 0.22);
 
         this.leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), shirtMat);

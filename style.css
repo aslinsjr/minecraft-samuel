@@ -2,6 +2,7 @@ body {
     margin: 0;
     overflow: hidden;
     font-family: sans-serif;
+    touch-action: none;
 }
 
 canvas {
@@ -17,6 +18,7 @@ canvas {
     padding: 10px;
     border-radius: 5px;
     pointer-events: none;
+    z-index: 100;
 }
 
 #username-display {
@@ -57,6 +59,7 @@ canvas {
     transition: opacity 0.3s ease;
     font-weight: bold;
     border: 2px solid #4ade80;
+    z-index: 100;
 }
 
 #inventory {
@@ -70,80 +73,9 @@ canvas {
     padding: 15px;
     border-radius: 10px;
     border: 2px solid #555;
-}
-
-.slot {
-    color: white;
-    font-weight: bold;
-    font-family: 'Courier New', Courier, monospace;
-    padding: 10px 15px;
-    border-radius: 5px;
-    border: 2px solid transparent;
-    background: rgba(255, 255, 255, 0.1);
-    transition: all 0.2s ease;
-}
-
-.slot:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.selected {
-    border: 2px solid yellow !important;
-    background: rgba(255, 255, 0, 0.2) !important;
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
-}
-
-/* Indicador de Modo */
-#mode-indicator {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-radius: 20px;
     z-index: 100;
 }
 
-.mode {
-    padding: 8px 16px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #ccc;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.mode.active {
-    background: rgba(0, 150, 255, 0.3);
-    color: white;
-    box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
-}
-
-/* Dicas de Controles */
-#slot-hint {
-    position: fixed;
-    bottom: 100px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
-    border-radius: 10px;
-    color: white;
-    font-size: 14px;
-    z-index: 100;
-}
-
-#slot-hint div {
-    margin: 5px 0;
-    opacity: 0.8;
-}
-
-/* Melhoria nos Slots */
 .slot-container {
     display: flex;
     gap: 15px;
@@ -158,6 +90,9 @@ canvas {
     cursor: pointer;
     transition: all 0.2s;
     border: 3px solid transparent;
+    color: white;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .slot:hover {
@@ -188,8 +123,238 @@ canvas {
     color: white;
 }
 
-.slot-key {
-    font-size: 11px;
-    color: #888;
-    margin-top: 5px;
+/* Indicador de Modo */
+#mode-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 100;
+}
+
+.mode {
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.mode:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.mode.active {
+    background: rgba(0, 150, 255, 0.3);
+    color: white;
+    box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+}
+
+/* Dicas de Controles */
+#slot-hint {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    z-index: 100;
+}
+
+#slot-hint div {
+    margin: 5px 0;
+    opacity: 0.8;
+}
+
+/* Controles Mobile */
+#mobile-controls {
+    display: none;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 90;
+}
+
+#joystick-container {
+    position: absolute;
+    left: 30px;
+    bottom: 30px;
+    pointer-events: all;
+}
+
+#joystick-base {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    position: relative;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+#joystick-stick {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.1s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+#action-buttons {
+    position: absolute;
+    right: 30px;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    pointer-events: all;
+}
+
+.action-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.action-btn span {
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+.action-btn:active {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
+}
+
+#jump-btn {
+    background: rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.6);
+}
+
+#action-btn {
+    background: rgba(255, 152, 0, 0.3);
+    border-color: rgba(255, 152, 0, 0.6);
+}
+
+/* Alerta de Orientação */
+#orientation-alert {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+#orientation-alert .rotate-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: rotate 2s infinite;
+}
+
+#orientation-alert p {
+    font-size: 18px;
+    margin: 0;
+}
+
+@keyframes rotate {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+
+/* Media Queries para Mobile */
+@media (max-width: 768px) {
+    #mobile-controls {
+        display: block;
+    }
+
+    #slot-hint {
+        display: none;
+    }
+
+    #inventory {
+        bottom: 120px;
+        padding: 10px;
+    }
+
+    .slot {
+        width: 70px;
+        padding: 10px;
+    }
+
+    .slot-icon {
+        font-size: 20px;
+    }
+
+    .slot-name {
+        font-size: 10px;
+    }
+
+    .slot-count {
+        font-size: 14px;
+    }
+
+    #mode-indicator {
+        top: 10px;
+        padding: 8px 15px;
+    }
+
+    .mode {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    #ui {
+        top: 10px;
+        left: 10px;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    #logout-btn {
+        top: 10px;
+        right: 10px;
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+}
+
+/* Orientação Portrait em Mobile */
+@media (max-width: 768px) and (orientation: portrait) {
+    #orientation-alert {
+        display: flex;
+    }
 }

@@ -4,34 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="./favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zé Mineiro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <!-- UI Principal -->
     <div id="ui">
         <div id="username-display"></div>
     </div>
     <button id="logout-btn">Sair</button>
     <div id="save-indicator">Jogo Salvo</div>
-    <!-- Adicione estes elementos no seu HTML existente -->
+
+    <!-- Indicador de Modo -->
     <div id="mode-indicator">
-        <div class="mode active" id="mining-mode">
+        <div class="mode active" id="mining-mode" data-mode="mining">
             ⛏️ Modo Mineração
         </div>
-        <div class="mode" id="building-mode">
+        <div class="mode" id="building-mode" data-mode="building">
             🧱 Modo Construção
         </div>
     </div>
 
+    <!-- Dicas de Controles (Desktop) -->
     <div id="slot-hint">
         <div>1 - Madeira 🌳</div>
         <div>2 - Pedra 🧱</div>
-        <div>B - Alternar Modo</div>
+        <div>WASD - Mover</div>
+        <div>Space - Pular</div>
     </div>
 
-    <!-- Melhore os slots existentes -->
+    <!-- Inventário -->
     <div id="inventory">
         <div class="slot-container">
             <div class="slot selected" id="slot-1" data-item="wood">
@@ -46,6 +50,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Controles Mobile -->
+    <div id="mobile-controls">
+        <!-- Joystick -->
+        <div id="joystick-container">
+            <div id="joystick-base">
+                <div id="joystick-stick"></div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div id="action-buttons">
+            <button id="jump-btn" class="action-btn">↑<span>Pular</span></button>
+            <button id="action-btn" class="action-btn">⛏️<span>Ação</span></button>
+        </div>
+    </div>
+
+    <!-- Alerta de Orientação -->
+    <div id="orientation-alert">
+        <div class="rotate-icon">📱</div>
+        <p>Por favor, gire seu dispositivo para o modo paisagem</p>
+    </div>
+
     <script type="importmap">
         {
             "imports": {
@@ -57,7 +84,6 @@
     <script>
         const AUTH_URL = 'https://ze-mineiro-login.vercel.app/';
 
-        // Logout
         document.getElementById('logout-btn').addEventListener('click', () => {
             sessionStorage.clear();
             window.location.href = AUTH_URL;

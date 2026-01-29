@@ -29,7 +29,7 @@ export class World {
         const block = new THREE.Mesh(this.blockGeo, this.mats[type]);
         block.position.set(x, y, z);
         block.userData.type = type;
-        block.name = type; // Para identificar na mineração
+        block.name = type; // Para identificar na mineraÃ§Ã£o
         
         this.scene.add(block);
         this.blocks.push(block);
@@ -96,7 +96,7 @@ export class World {
             this.spawnBlock(t.x, t.y, t.z, 'grass', false);
         });
 
-        // Carregar água
+        // Carregar Ã¡gua
         for (let x = -size; x < size; x++) {
             for (let z = -size; z < size; z++) {
                 const hasGrass = this.terrainData.some(t => t.x === x && t.z === z);
@@ -111,7 +111,7 @@ export class World {
             }
         }
 
-        // Carregar árvores (apenas as não destruídas)
+        // Carregar Ã¡rvores (apenas as nÃ£o destruÃ­das)
         this.treesData.forEach(t => {
             const treeId = `${t.x}_${t.y}_${t.z}`;
             if (!this.destroyedResources.has(treeId)) {
@@ -119,7 +119,7 @@ export class World {
             }
         });
 
-        // Carregar pedras (apenas as não destruídas)
+        // Carregar pedras (apenas as nÃ£o destruÃ­das)
         this.stonesData.forEach(s => {
             const stoneId = `${s.x}_${s.y}_${s.z}`;
             if (!this.destroyedResources.has(stoneId)) {
