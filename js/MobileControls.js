@@ -4,10 +4,14 @@ export class MobileControls {
         this.isMobile = this.detectMobile();
         
         if (this.isMobile) {
+            this.activateMobileControls();
             this.setupJoystick();
             this.setupActionButtons();
             this.setupTouchRotation();
         }
+        
+        // Botão de toggle para testes em desktop
+        this.setupMobileToggle();
         
         this.joystickActive = false;
         this.joystickDirection = { x: 0, y: 0 };
@@ -18,6 +22,54 @@ export class MobileControls {
     detectMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
             || window.innerWidth <= 768;
+    }
+
+    activateMobileControls() {
+        const mobileControls = document.getElementById('mobile-controls');
+        if (mobileControls) {
+            mobileControls.classList.add('active');
+        }
+        
+        // Esconder dicas de teclado
+        const slotHint = document.getElementById('slot-hint');
+        if (slotHint) {
+            slotHint.style.display = 'none';
+        }
+    }
+
+    setupMobileToggle() {
+        const toggleBtn = document.getElementById('mobile-toggle');
+        if (!toggleBtn) return;
+
+        // Mostrar botão apenas em desktop para testes
+        if (!this.isMobile && window.innerWidth > 768) {
+            toggleBtn.style.display = 'block';
+            
+            toggleBtn.addEventListener('click', () => {
+                const mobileControls = document.getElementById('mobile-controls');
+                const slotHint = document.getElementById('slot-hint');
+                
+                if (mobileControls.classList.contains('active')) {
+                    mobileControls.classList.remove('active');
+                    if (slotHint) slotHint.style.display = 'block';
+                    toggleBtn.classList.remove('active');
+                    this.isMobile = false;
+                } else {
+                    mobileControls.classList.add('active');
+                    if (slotHint) slotHint.style.display = 'none';
+                    toggleBtn.classList.add('active');
+                    this.isMobile = true;
+                    
+                    // Inicializar controles se ainda não foram
+                    if (!this.joystickInitialized) {
+                        this.setupJoystick();
+                        this.setupActionButtons();
+                        this.setupTouchRotation();
+                        this.joystickInitialized = true;
+                    }
+                }
+            });
+        }
     }
 
     setupJoystick() {
