@@ -87,30 +87,30 @@ export class UIManager {
 
     showFeedback(message, duration = 1000) {
         // Criar elemento de feedback temporário
-        const feedback = document.createElement('div');
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 18px;
-            z-index: 2000;
-            pointer-events: none;
-            animation: fadeInOut ${duration}ms ease;
-        `;
-        feedback.textContent = message;
+        // const feedback = document.createElement('div');
+        // feedback.style.cssText = `
+        //     position: fixed;
+        //     top: 50%;
+        //     left: 50%;
+        //     transform: translate(-50%, -50%);
+        //     background: rgba(0, 0, 0, 0.8);
+        //     color: white;
+        //     padding: 15px 30px;
+        //     border-radius: 10px;
+        //     font-size: 18px;
+        //     z-index: 2000;
+        //     pointer-events: none;
+        //     animation: fadeInOut ${duration}ms ease;
+        // `;
+        // feedback.textContent = message;
         
-        document.body.appendChild(feedback);
+        // document.body.appendChild(feedback);
         
-        setTimeout(() => {
-            if (feedback.parentNode) {
-                feedback.parentNode.removeChild(feedback);
-            }
-        }, duration);
+        // setTimeout(() => {
+        //     if (feedback.parentNode) {
+        //         feedback.parentNode.removeChild(feedback);
+        //     }
+        // }, duration);
     }
 
     updateUsername(username) {

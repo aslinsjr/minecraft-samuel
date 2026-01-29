@@ -339,11 +339,11 @@ canvas {
     }
 
     .slot-name {
-        font-size: 10px;
+        display: none;
     }
 
     .slot-count {
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     #mode-indicator {
