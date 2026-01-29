@@ -87,7 +87,7 @@ canvas {
 
 #inventory {
     position: absolute;
-    bottom: 1rem;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -330,8 +330,7 @@ canvas {
     }
 
     .slot {
-        width: 70px;
-        padding: 10px;
+        padding: 0.5rem;
     }
 
     .slot-icon {
@@ -376,4 +375,75 @@ canvas {
     #orientation-alert {
         display: flex;
     }
+}
+
+/* Tela de Início Mobile */
+#mobile-start-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 10000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+#mobile-start-screen.show {
+    display: flex;
+}
+
+.start-content {
+    max-width: 400px;
+}
+
+.start-content h1 {
+    font-size: 48px;
+    margin: 0 0 20px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.start-content p {
+    font-size: 16px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+#start-fullscreen-btn,
+#start-normal-btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#start-fullscreen-btn {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+}
+
+#start-fullscreen-btn:active {
+    background: rgba(34, 197, 94, 1);
+    transform: scale(0.98);
+}
+
+#start-normal-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+#start-normal-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.98);
 }

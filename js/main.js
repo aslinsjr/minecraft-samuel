@@ -59,7 +59,17 @@ scene.add(ghostBlock);
 setupEventHandlers();
 
 // Carregar jogo
-initializeGame();
+if (mobileControls.isGameStarted()) {
+    initializeGame();
+} else {
+    // Aguardar usuário mobile clicar para iniciar
+    const checkGameStart = setInterval(() => {
+        if (mobileControls.isGameStarted()) {
+            clearInterval(checkGameStart);
+            initializeGame();
+        }
+    }, 100);
+}
 
 // Loop de animação
 animate();

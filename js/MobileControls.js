@@ -2,12 +2,13 @@ export class MobileControls {
     constructor(inputHandler) {
         this.inputHandler = inputHandler;
         this.isMobile = this.detectMobile();
+        this.fullscreenEnabled = false;
+        this.gameStarted = false;
         
         if (this.isMobile) {
-            this.activateMobileControls();
-            this.setupJoystick();
-            this.setupActionButtons();
-            this.setupTouchRotation();
+            this.showStartScreen();
+        } else {
+            this.gameStarted = true;
         }
         
         // Botão de toggle para testes em desktop
@@ -35,6 +36,124 @@ export class MobileControls {
         if (slotHint) {
             slotHint.style.display = 'none';
         }
+    }
+
+    showStartScreen() {
+        const startScreen = document.getElementById('mobile-start-screen');
+        if (!startScreen) return;
+
+        startScreen.classList.add('show');
+
+        const fullscreenBtn = document.getElementById('start-fullscreen-btn');
+        const normalBtn = document.getElementById('start-normal-btn');
+
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', async () => {
+                await this.enterFullscreen();
+                this.startGame();
+            });
+        }
+
+        if (normalBtn) {
+            normalBtn.addEventListener('click', () => {
+                this.startGame();
+            });
+        }
+    }
+
+    startGame() {
+        const startScreen = document.getElementById('mobile-start-screen');
+        if (startScreen) {
+            startScreen.classList.remove('show');
+        }
+
+        this.gameStarted = true;
+        this.activateMobileControls();
+        this.setupJoystick();
+        this.setupActionButtons();
+        this.setupTouchRotation();
+        this.setupOrientationHandler();
+    }
+
+    async enterFullscreen() {
+        try {
+            const elem = document.documentElement;
+            
+            if (elem.requestFullscreen) {
+                await elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { // Safari
+                await elem.webkitRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) { // Firefox
+                await elem.mozRequestFullScreen();
+            } else if (elem.msRequestFullscreen) { // IE/Edge
+                await elem.msRequestFullscreen();
+            }
+            
+            this.fullscreenEnabled = true;
+            
+            // Lock orientation to landscape se disponível
+            if (screen.orientation && screen.orientation.lock) {
+                try {
+                    await screen.orientation.lock('landscape');
+                } catch (e) {
+                    console.log('Orientation lock não disponível:', e);
+                }
+            }
+        } catch (err) {
+            console.error('Erro ao entrar em fullscreen:', err);
+        }
+    }
+
+    exitFullscreen() {
+        try {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
+            this.fullscreenEnabled = false;
+        } catch (err) {
+            console.error('Erro ao sair do fullscreen:', err);
+        }
+    }
+
+    setupOrientationHandler() {
+        // Detectar mudança de orientação
+        const handleOrientationChange = async () => {
+            if (!this.gameStarted) return;
+
+            const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+            
+            if (isLandscape && this.isMobile && !this.fullscreenEnabled) {
+                // Tentar entrar em fullscreen automaticamente
+                await this.enterFullscreen();
+            }
+        };
+
+        // Usar API moderna de orientação se disponível
+        if (screen.orientation) {
+            screen.orientation.addEventListener('change', handleOrientationChange);
+        } else {
+            // Fallback para eventos antigos
+            window.addEventListener('orientationchange', handleOrientationChange);
+        }
+
+        // Também escutar resize
+        window.addEventListener('resize', handleOrientationChange);
+
+        // Listener para sair do fullscreen
+        document.addEventListener('fullscreenchange', () => {
+            this.fullscreenEnabled = !!document.fullscreenElement;
+        });
+        
+        document.addEventListener('webkitfullscreenchange', () => {
+            this.fullscreenEnabled = !!document.webkitFullscreenElement;
+        });
     }
 
     setupMobileToggle() {
@@ -213,5 +332,9 @@ export class MobileControls {
         const delta = this.rotationDelta;
         this.rotationDelta *= 0.9; // Suavizar
         return delta;
+    }
+
+    isGameStarted() {
+        return this.gameStarted;
     }
 }
